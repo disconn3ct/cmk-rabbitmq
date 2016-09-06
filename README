@@ -1,0 +1,19 @@
+# RabbitMQ Check
+
+This is a basic RabbitMQ check for Check_MK/OMD.
+
+It currently only monitors queue depth and consumer count, but the agent
+returns quite a bit more and the check will be expanded as time permits.
+
+Example configuration file (/etc/check_mk/rabbitmq.cfg):
+
+```python
+servers = [
+    {
+				"address"  : "localhost",
+				"port"     : 15672,
+				"user"     : "rabbitmq",
+				"password" : "supersekretive"
+		},
+]
+```

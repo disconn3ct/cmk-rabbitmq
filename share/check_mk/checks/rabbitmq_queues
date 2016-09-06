@@ -1,0 +1,81 @@
+#!/usr/bin/python
+#
+# This is free software;  you can redistribute it and/or modify it
+# under the  terms of the  GNU General Public License  as published by
+# the Free Software Foundation in version 3.  This test is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;  with-
+# out even the implied warranty of  MERCHANTABILITY  or  FITNESS FOR A
+# PARTICULAR PURPOSE. See the  GNU General Public License for more de-
+# ails.  You should have  received  a copy of the  GNU  General Public
+# License along with GNU Make; see the file  COPYING.  If  not,  write
+# to the Free Software Foundation, Inc., 51 Franklin St,  Fifth Floor,
+# Boston, MA 02110-1301 USA.
+#
+rabbit_queues_default_levels = {
+  "size" : (None, None),
+  "consumerCount": (None, None),
+}
+
+def inventory_rabbitmq_queues(info):
+  inventory = []
+  # terrible news, info is an array of whitespace-separated strings.
+  # Plugin sends tab-separated info:
+  # name state consumers messages messages_ready
+  for line in info:
+    name=line[0]
+    inventory.append((name, rabbit_queues_default_levels))
+  return inventory
+
+def check_rabbitmq_queues(item, params, info):
+  for line in info:
+    if line[0] == item:
+      msg = ""
+      label = ""
+      state = 0
+      perf = []
+
+      cwarn,ccrit = params['consumerCount']
+      warn, crit = params['size']
+      qstate=line[1]
+      consumerCount=int(line[2])
+      size=int(line[3])
+
+      if qstate != 'running':
+        state = 1
+        label = "(!)"
+      msg += "State: %s%s, " % (qstate,label)
+
+      label=""
+
+      if ccrit and consumerCount <= ccrit:
+        state = 2
+        label = "(!!)"
+      elif cwarn and consumerCount <= cwarn:
+        state = max(state,1)
+        label = "(!)"
+      if state > 0:
+        msg += "%s consumers " % consumerCount
+        msg += "(Levels Warn/Crit below %s/%s)%s, " % (cwarn, ccrit, label)
+
+      perf.append(("consumers", consumerCount, warn, crit))
+      label = ""
+
+      if crit and size >= crit:
+        state = 2
+        label = "(!!)"
+      elif warn and size >= warn:
+        state=max(state,1)
+        label = "(!)"
+      msg += "Queue Size: %s " % size
+      if label != "":
+        msg += "(Levels Warn/Crit at %s/%s)%s" % (warn, crit, label)
+      perf.append(("queue", size, warn, crit))
+      return state, msg, perf
+
+check_info["rabbitmq_queues"] = {
+  'check_function':            check_rabbitmq_queues,
+  'inventory_function':        inventory_rabbitmq_queues,
+  'service_description':       'RabbitMQ %s Queue Status',
+  'has_perfdata':              True,
+  'group':                     'rabbitmq_queues',
+}
