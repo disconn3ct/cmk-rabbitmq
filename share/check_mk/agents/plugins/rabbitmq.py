@@ -23,6 +23,8 @@ config_dir = os.getenv("MK_CONFDIR", "/etc/check_mk")
 config_file = config_dir + "/rabbitmq.cfg"
 
 servers = None
+timeout=30
+
 if os.path.exists(config_file):
 	execfile(config_file)
 
@@ -76,7 +78,7 @@ def query_rmq(url,user,password):
 							authheader = "Basic %s" % base64.encodestring('%s:%s' % (user, password))[:-1]
 							headers.update({"Authorization" : authheader })
 					request = urllib2.Request(url, headers=headers)
-					fd = urllib2.urlopen(request)
+					fd = urllib2.urlopen(request, timeout=timeout)
 					return fd.read()
 			except urllib2.URLError, e:
 					raise
