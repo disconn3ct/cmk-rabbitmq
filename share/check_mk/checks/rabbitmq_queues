@@ -47,10 +47,10 @@ def check_rabbitmq_queues(item, params, info):
 
       label=""
 
-      if ccrit and consumerCount <= ccrit:
+      if ccrit is not None and consumerCount <= ccrit:
         state = 2
         label = "(!!)"
-      elif cwarn and consumerCount <= cwarn:
+      elif cwarn is not None and consumerCount <= cwarn:
         state = max(state,1)
         label = "(!)"
       if state > 0:
@@ -60,10 +60,10 @@ def check_rabbitmq_queues(item, params, info):
       perf.append(("consumers", consumerCount, warn, crit))
       label = ""
 
-      if crit and size >= crit:
+      if crit is not None and size >= crit:
         state = 2
         label = "(!!)"
-      elif warn and size >= warn:
+      elif warn is not None and size >= warn:
         state=max(state,1)
         label = "(!)"
       msg += "Queue Size: %s " % size
