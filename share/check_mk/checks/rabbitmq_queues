@@ -57,7 +57,7 @@ def check_rabbitmq_queues(item, params, info):
         msg += "%s consumers " % consumerCount
         msg += "(Levels Warn/Crit below %s/%s)%s, " % (cwarn, ccrit, label)
 
-      perf.append(("consumers", consumerCount, warn, crit))
+      perf.append(("consumers", consumerCount, cwarn, ccrit))
       label = ""
 
       if crit and size >= crit:
