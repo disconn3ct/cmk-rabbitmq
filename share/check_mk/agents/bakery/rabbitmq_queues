@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+def bake_rabbitmq_queues(opsys, conf, conf_dir, plugins_dir):
+    target_dir = plugins_dir
+
+    # Handle the optional async/interval flag
+    if "interval" in conf:
+        target_dir = plugins_dir + "/%d" % conf["interval"] # Interval for async execution
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
+    # Deploy the agent plugin
+    shutil.copy2(local_agents_dir + "/plugins/rabbitmq.py", target_dir + "/rabbitmq.py")
+
+    # Create the agent configuration
+#    content = agent_file_header
+    content = ''
+    if "credentials" in conf:
+        content += "servers = [{\n"
+        content += "\"address\": \"localhost\",\n"
+        content += "\"port\": \"%s\",\n" % conf['port']
+        content += "\"user\": \"%s\",\n" % conf['credentials'][0]
+        content += "\"password\": \"%s\"\n" % conf['credentials'][1]
+        content += "},]"
+
+    cfg_file = conf_dir + "/rabbitmq.cfg"
+    file(cfg_file, "w").write(content)
+
+
+bakery_info["rabbitmq_queues"] = {
+    "bake_function" : bake_rabbitmq_queues,
+    "os"            : [ "linux" ],
+}
